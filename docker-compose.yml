@@ -1,0 +1,56 @@
+version: "3.7"
+services:
+  master:
+    image: mysql:5.7
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_USER: demo
+      MYSQL_DATABASE : demo_database
+      MYSQL_PASSWORD: 'demo'
+    volumes:
+      - master-data:/var/lib/mysql
+      - ./docker/mysql/config/master-my.cnf:/etc/mysql/my.cnf
+      - ./docker/mysql/00_user.sql:/docker-entrypoint-initdb.d/00_user.sql
+      - ./docker/mysql/01_master.sql:/docker-entrypoint-initdb.d/01_master.sql
+  slave1:
+    image: mysql:5.7
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_USER: demo
+      MYSQL_DATABASE : demo_database
+      MYSQL_PASSWORD: 'demo'
+    depends_on:
+      - master
+    volumes:
+      - slave1-data:/var/lib/mysql
+      - ./docker/mysql/config/slave1-my.cnf:/etc/mysql/my.cnf
+      - ./docker/mysql/00_user.sql:/docker-entrypoint-initdb.d/00_user.sql
+      - ./docker/mysql/01_slave.sql:/docker-entrypoint-initdb.d/01_slave.sql
+
+  slave2:
+    image: mysql:5.7
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_USER: demo
+      MYSQL_DATABASE : demo_database
+      MYSQL_PASSWORD: 'demo'
+    depends_on:
+      - master
+    volumes:
+      - slave2-data:/var/lib/mysql
+      - ./docker/mysql/00_user.sql:/docker-entrypoint-initdb.d/00_user.sql
+      - ./docker/mysql/01_slave.sql:/docker-entrypoint-initdb.d/01_slave.sql
+      - ./docker/mysql/config/slave2-my.cnf:/etc/mysql/my.cnf
+  client:
+    image: mysql:5.7
+    entrypoint: ''
+    command: 'bash'
+    working_dir: /app
+    volumes:
+      - ./write_master.sh:/app/write_master.sh
+
+
+volumes:
+  master-data:
+  slave1-data:
+  slave2-data:
